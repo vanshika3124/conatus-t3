@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // <-- STEP 1: AXIOS KO IMPORT KAREIN
+import axios from 'axios';
 import './App.css';
 
 // Main App Component
@@ -13,33 +13,24 @@ const App = () => {
   const [error, setError] = useState(null);
   const [selectedArticle, setSelectedArticle] = useState(null);
 
-  // --- API KEY & CATEGORIES ---
-  const apiKey = import.meta.env.VITE_API_KEY; // Apni real API key daalein
+  // --- CATEGORIES ---
+  // API Key ko yahan se hata diya hai kyunki ab woh backend function mein use hogi
   const categories = ['general', 'business', 'technology', 'entertainment', 'health', 'science', 'sports'];
 
-  // --- DATA FETCHING (Using Axios) ---
+  // --- DATA FETCHING (Using Netlify Function) ---
   useEffect(() => {
     setLoading(true);
     setError(null);
     setSelectedArticle(null);
-
-    if (apiKey === 'YOUR_API_KEY') {
-      console.log("Using mock data. Please add your NewsAPI key.");
-      setTimeout(() => {
-        setArticles(mockArticles);
-        setFilteredArticles(mockArticles);
-        setLoading(false);
-      }, 800);
-      return;
-    }
     
     const fetchNews = async () => {
       try {
-        // <-- STEP 2: FETCH KI JAGAH AXIOS.GET USE KAREIN
-        const url = `https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=${apiKey}`;
+        // <<--- CHANGE YAHAN HAI ---<<
+        // Ab hum NewsAPI ke bajaye apne Netlify Function ko call kar rahe hain
+        const url = `/.netlify/functions/fetchNews?category=${category}`;
         const response = await axios.get(url);
 
-        // Axios mein data seedha 'response.data' mein milta hai
+        // Hamare function se mila data 'response.data' mein hai
         if (response.data.status === "error") {
           throw new Error(response.data.message);
         }
@@ -49,15 +40,17 @@ const App = () => {
         setFilteredArticles(validArticles);
         
       } catch (error) {
-        // Axios network errors aur 4xx/5xx status codes ko automatically catch kar leta hai
-        setError(error.message);
+        // Agar function mein ya network mein error aayi toh yahan dikhegi
+        setError(error.message || 'Something went wrong while fetching news.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchNews();
-  }, [category, apiKey]);
+  // <<--- CHANGE YAHAN HAI ---<<
+  // Dependency array se apiKey hata diya hai, kyunki frontend ko ab uski zaroorat nahi
+  }, [category]); 
 
   // --- SEARCH FILTERING ---
   useEffect(() => {
@@ -84,7 +77,7 @@ const App = () => {
         onSearchChange={handleSearchChange}
         categories={categories}
         activeCategory={category}
-        onCategoryChange={handleCategoryChange}
+        onCategory-change={handleCategoryChange}
       />
       
       <main className="container">
@@ -134,7 +127,6 @@ const Header = ({ searchTerm, onSearchChange, categories, activeCategory, onCate
     </header>
 );
   
-
 const NewsList = ({ articles, onArticleClick }) => {
     if (articles.length === 0) {
       return <p>No articles found. Try a different search or category.</p>;
@@ -148,7 +140,6 @@ const NewsList = ({ articles, onArticleClick }) => {
     );
 };
   
-
 const NewsItem = ({ article, onArticleClick }) => {
     const imageUrl = article.urlToImage || `https://placehold.co/600x400/1f2937/d1d5db?text=${article.source.name}`;
     const publicationDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
@@ -205,12 +196,5 @@ const Footer = () => (
       <p>Powered by <a href="https://newsapi.org/" target="_blank" rel="noopener noreferrer">NewsAPI.org</a></p>
     </footer>
 );
-  
-// --- MOCK DATA ---
-const mockArticles = [
-    { source: { name: "TechCrunch" }, title: "Mock Article 1: The Future of Tech", description: "An inside look at the innovations shaping our world.", publishedAt: "2025-10-07T10:00:00Z", urlToImage: "https://placehold.co/600x400/3498db/ffffff?text=Tech+Future", url: "#" },
-    { source: { name: "Bloomberg" }, title: "Mock Article 2: Global Business Trends", description: "What to expect in the world of finance and business this year.", publishedAt: "2025-10-07T09:30:00Z", urlToImage: "https://placehold.co/600x400/2ecc71/ffffff?text=Business", url: "#" },
-    { source: { name: "WebMD" }, title: "Mock Article 3: Health & Wellness Discoveries", description: "New breakthroughs in medicine and personal health.", publishedAt: "2025-10-07T09:00:00Z", urlToImage: "https://placehold.co/600x400/e74c3c/ffffff?text=Health", url: "#" },
-];
 
 export default App;
