@@ -14,7 +14,6 @@ const App = () => {
   const [selectedArticle, setSelectedArticle] = useState(null);
 
   // --- CATEGORIES ---
-  // API Key ko yahan se hata diya hai kyunki ab woh backend function mein use hogi
   const categories = ['general', 'business', 'technology', 'entertainment', 'health', 'science', 'sports'];
 
   // --- DATA FETCHING (Using Netlify Function) ---
@@ -25,12 +24,9 @@ const App = () => {
     
     const fetchNews = async () => {
       try {
-        // <<--- CHANGE YAHAN HAI ---<<
-        // Ab hum NewsAPI ke bajaye apne Netlify Function ko call kar rahe hain
         const url = `/.netlify/functions/fetchNews?category=${category}`;
         const response = await axios.get(url);
 
-        // Hamare function se mila data 'response.data' mein hai
         if (response.data.status === "error") {
           throw new Error(response.data.message);
         }
@@ -40,7 +36,6 @@ const App = () => {
         setFilteredArticles(validArticles);
         
       } catch (error) {
-        // Agar function mein ya network mein error aayi toh yahan dikhegi
         setError(error.message || 'Something went wrong while fetching news.');
       } finally {
         setLoading(false);
@@ -48,8 +43,6 @@ const App = () => {
     };
 
     fetchNews();
-  // <<--- CHANGE YAHAN HAI ---<<
-  // Dependency array se apiKey hata diya hai, kyunki frontend ko ab uski zaroorat nahi
   }, [category]); 
 
   // --- SEARCH FILTERING ---
@@ -77,7 +70,9 @@ const App = () => {
         onSearchChange={handleSearchChange}
         categories={categories}
         activeCategory={category}
-        onCategory-change={handleCategoryChange}
+        // <<--- TYPO FIXED HERE ---<<
+        // 'onCategory-change' ko 'onCategoryChange' kar diya hai
+        onCategoryChange={handleCategoryChange}
       />
       
       <main className="container">
