@@ -13,7 +13,7 @@ const App = () => {
   const [selectedArticle, setSelectedArticle] = useState(null);
 
   // --- API KEY & CATEGORIES ---
-  const apiKey = 'a8ea24392d444592afd61f8137cfdd1f';
+  const apiKey = import.meta.env.VITE_NEWS_API_KEY;
   const categories = ['general', 'business', 'technology', 'entertainment', 'health', 'science', 'sports'];
 
   // --- DATA FETCHING ---
