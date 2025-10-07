@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import './App.css'; // CSS file ko import karein
+import axios from 'axios'; // <-- STEP 1: AXIOS KO IMPORT KAREIN
+import './App.css';
 
 // Main App Component
 const App = () => {
@@ -13,10 +14,10 @@ const App = () => {
   const [selectedArticle, setSelectedArticle] = useState(null);
 
   // --- API KEY & CATEGORIES ---
-  const apiKey = 'a8ea24392d444592afd61f8137cfdd1f'; 
+  const apiKey = import.meta.env.VITE_API_KEY; // Apni real API key daalein
   const categories = ['general', 'business', 'technology', 'entertainment', 'health', 'science', 'sports'];
 
-  // --- DATA FETCHING (No Changes) ---
+  // --- DATA FETCHING (Using Axios) ---
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -34,14 +35,21 @@ const App = () => {
     
     const fetchNews = async () => {
       try {
-        const response = await fetch(`https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=${apiKey}`);
-        if (!response.ok) throw new Error('Network response was not ok.');
-        const data = await response.json();
-        if (data.status === "error") throw new Error(data.message);
-        const validArticles = data.articles.filter(article => article.title && article.title !== "[Removed]");
+        // <-- STEP 2: FETCH KI JAGAH AXIOS.GET USE KAREIN
+        const url = `https://newsapi.org/v2/top-headlines?country=us&category=${category}&apiKey=${apiKey}`;
+        const response = await axios.get(url);
+
+        // Axios mein data seedha 'response.data' mein milta hai
+        if (response.data.status === "error") {
+          throw new Error(response.data.message);
+        }
+        
+        const validArticles = response.data.articles.filter(article => article.title && article.title !== "[Removed]");
         setArticles(validArticles);
         setFilteredArticles(validArticles);
+        
       } catch (error) {
+        // Axios network errors aur 4xx/5xx status codes ko automatically catch kar leta hai
         setError(error.message);
       } finally {
         setLoading(false);
@@ -51,7 +59,7 @@ const App = () => {
     fetchNews();
   }, [category, apiKey]);
 
-  // --- SEARCH FILTERING (No Changes) ---
+  // --- SEARCH FILTERING ---
   useEffect(() => {
     const results = articles.filter(article =>
       article.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -59,7 +67,7 @@ const App = () => {
     setFilteredArticles(results);
   }, [searchTerm, articles]);
 
-  // --- EVENT HANDLERS (No Changes) ---
+  // --- EVENT HANDLERS ---
   const handleSearchChange = (event) => setSearchTerm(event.target.value);
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory);
@@ -96,10 +104,9 @@ const App = () => {
   );
 };
 
-// --- COMPONENTS ---
+// --- COMPONENTS (No changes needed here) ---
 
-const Header = ({ searchTerm, onSearchChange, categories, activeCategory, onCategoryChange }) => {
-  return (
+const Header = ({ searchTerm, onSearchChange, categories, activeCategory, onCategoryChange }) => (
     <header className="app-header">
       <div className="container">
         <div className="header-content">
@@ -125,57 +132,58 @@ const Header = ({ searchTerm, onSearchChange, categories, activeCategory, onCate
         </nav>
       </div>
     </header>
-  );
-};
+);
+  
 
 const NewsList = ({ articles, onArticleClick }) => {
-  if (articles.length === 0) {
-    return <p>No articles found. Try a different search or category.</p>;
-  }
-  return (
-    <div className="news-list">
-      {articles.map((article, index) => (
-        <NewsItem key={article.url || index} article={article} onArticleClick={onArticleClick} />
-      ))}
-    </div>
-  );
+    if (articles.length === 0) {
+      return <p>No articles found. Try a different search or category.</p>;
+    }
+    return (
+      <div className="news-list">
+        {articles.map((article, index) => (
+          <NewsItem key={article.url || index} article={article} onArticleClick={onArticleClick} />
+        ))}
+      </div>
+    );
 };
+  
 
 const NewsItem = ({ article, onArticleClick }) => {
-  const imageUrl = article.urlToImage || `https://placehold.co/600x400/1f2937/d1d5db?text=${article.source.name}`;
-  const publicationDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
-    year: 'numeric', month: 'long', day: 'numeric'
-  });
-
-  return (
-    <div className="news-item" onClick={() => onArticleClick(article)}>
-      <div className="news-item-image-container">
-        <img 
-          src={imageUrl} 
-          alt={article.title} 
-          className="news-item-image"
-          onError={(e) => { e.target.onerror = null; e.target.src='[https://placehold.co/600x400/1f2937/6b7280?text=Image+Error](https://placehold.co/600x400/1f2937/6b7280?text=Image+Error)'; }}
-        />
-        <span className="news-item-source">{article.source.name}</span>
+    const imageUrl = article.urlToImage || `https://placehold.co/600x400/1f2937/d1d5db?text=${article.source.name}`;
+    const publicationDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
+      year: 'numeric', month: 'long', day: 'numeric'
+    });
+  
+    return (
+      <div className="news-item" onClick={() => onArticleClick(article)}>
+        <div className="news-item-image-container">
+          <img 
+            src={imageUrl} 
+            alt={article.title} 
+            className="news-item-image"
+            onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/600x400/1f2937/6b7280?text=Image+Error'; }}
+          />
+          <span className="news-item-source">{article.source.name}</span>
+        </div>
+        <div className="news-item-content">
+          <h2 className="news-item-title">{article.title}</h2>
+          <p className="news-item-date">{publicationDate}</p>
+          <p className="news-item-description">{article.description || 'No summary available.'}</p>
+        </div>
       </div>
-      <div className="news-item-content">
-        <h2 className="news-item-title">{article.title}</h2>
-        <p className="news-item-date">{publicationDate}</p>
-        <p className="news-item-description">{article.description || 'No summary available.'}</p>
-      </div>
-    </div>
-  );
+    );
 };
-
+  
 const ArticleDetail = ({ article, onBack }) => {
-    const imageUrl = article.urlToImage || '[https://placehold.co/800x400/1f2937/d1d5db?text=Full+Story](https://placehold.co/800x400/1f2937/d1d5db?text=Full+Story)';
+    const imageUrl = article.urlToImage || 'https://placehold.co/800x400/1f2937/d1d5db?text=Full+Story';
     const publicationDate = new Date(article.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
     return (
         <div className="article-detail">
              <button onClick={onBack} className="back-button">
-                &larr; Back to News
-            </button>
+                 &larr; Back to News
+             </button>
             <h1 className="article-detail-title">{article.title}</h1>
             <div className="article-detail-meta">
                 <span>By {article.author || 'Unknown Author'}</span> | <span>{publicationDate}</span>
@@ -191,21 +199,18 @@ const ArticleDetail = ({ article, onBack }) => {
     );
 };
 
-
-const Footer = () => {
-  return (
+const Footer = () => (
     <footer className="app-footer">
       <p>&copy; {new Date().getFullYear()} NewsWave. All Rights Reserved.</p>
-      <p>Powered by <a href="[https://newsapi.org/](https://newsapi.org/)" target="_blank" rel="noopener noreferrer">NewsAPI.org</a></p>
+      <p>Powered by <a href="https://newsapi.org/" target="_blank" rel="noopener noreferrer">NewsAPI.org</a></p>
     </footer>
-  );
-};
-
-// MOCK DATA (No Changes)
+);
+  
+// --- MOCK DATA ---
 const mockArticles = [
-    { source: { name: "TechCrunch" }, title: "Mock Article 1: The Future of Tech", description: "An inside look at the innovations shaping our world.", publishedAt: "2025-10-07T10:00:00Z", urlToImage: "[https://placehold.co/600x400/3498db/ffffff?text=Tech+Future](https://placehold.co/600x400/3498db/ffffff?text=Tech+Future)", url: "#" },
-    { source: { name: "Bloomberg" }, title: "Mock Article 2: Global Business Trends", description: "What to expect in the world of finance and business this year.", publishedAt: "2025-10-07T09:30:00Z", urlToImage: "[https://placehold.co/600x400/2ecc71/ffffff?text=Business](https://placehold.co/600x400/2ecc71/ffffff?text=Business)", url: "#" },
-    { source: { name: "WebMD" }, title: "Mock Article 3: Health & Wellness Discoveries", description: "New breakthroughs in medicine and personal health.", publishedAt: "2025-10-07T09:00:00Z", urlToImage: "[https://placehold.co/600x400/e74c3c/ffffff?text=Health](https://placehold.co/600x400/e74c3c/ffffff?text=Health)", url: "#" },
+    { source: { name: "TechCrunch" }, title: "Mock Article 1: The Future of Tech", description: "An inside look at the innovations shaping our world.", publishedAt: "2025-10-07T10:00:00Z", urlToImage: "https://placehold.co/600x400/3498db/ffffff?text=Tech+Future", url: "#" },
+    { source: { name: "Bloomberg" }, title: "Mock Article 2: Global Business Trends", description: "What to expect in the world of finance and business this year.", publishedAt: "2025-10-07T09:30:00Z", urlToImage: "https://placehold.co/600x400/2ecc71/ffffff?text=Business", url: "#" },
+    { source: { name: "WebMD" }, title: "Mock Article 3: Health & Wellness Discoveries", description: "New breakthroughs in medicine and personal health.", publishedAt: "2025-10-07T09:00:00Z", urlToImage: "https://placehold.co/600x400/e74c3c/ffffff?text=Health", url: "#" },
 ];
 
 export default App;
