@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-// Main App Component
+ 
 const App = () => {
-  // --- STATE MANAGEMENT ---
+  
   const [articles, setArticles] = useState([]);
   const [filteredArticles, setFilteredArticles] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,10 +13,10 @@ const App = () => {
   const [error, setError] = useState(null);
   const [selectedArticle, setSelectedArticle] = useState(null);
 
-  // --- CATEGORIES ---
+  
   const categories = ['general', 'business', 'technology', 'entertainment', 'health', 'science', 'sports'];
 
-  // --- DATA FETCHING (Using Netlify Function) ---
+  
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -45,7 +45,7 @@ const App = () => {
     fetchNews();
   }, [category]); 
 
-  // --- SEARCH FILTERING ---
+  
   useEffect(() => {
     const results = articles.filter(article =>
       article.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -53,7 +53,7 @@ const App = () => {
     setFilteredArticles(results);
   }, [searchTerm, articles]);
 
-  // --- EVENT HANDLERS ---
+   
   const handleSearchChange = (event) => setSearchTerm(event.target.value);
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory);
@@ -62,7 +62,7 @@ const App = () => {
   const handleArticleClick = (article) => setSelectedArticle(article);
   const handleBackToList = () => setSelectedArticle(null);
 
-  // --- RENDER LOGIC ---
+  
   return (
     <div>
       <Header 
@@ -70,8 +70,7 @@ const App = () => {
         onSearchChange={handleSearchChange}
         categories={categories}
         activeCategory={category}
-        // <<--- TYPO FIXED HERE ---<<
-        // 'onCategory-change' ko 'onCategoryChange' kar diya hai
+        
         onCategoryChange={handleCategoryChange}
       />
       
@@ -92,7 +91,7 @@ const App = () => {
   );
 };
 
-// --- COMPONENTS (No changes needed here) ---
+ 
 
 const Header = ({ searchTerm, onSearchChange, categories, activeCategory, onCategoryChange }) => (
     <header className="app-header">
