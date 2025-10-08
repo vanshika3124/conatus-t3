@@ -2,7 +2,7 @@
 
 A simple and clean news application that fetches the latest headlines from around the world using the [NewsAPI](https://newsapi.org/). This project was built with React and Vite.
 
-**Live Demo:** `https://shimmering-raindrop-9b755c.netlify.app/` 
+**Live Demo:** https://shimmering-raindrop-9b755c.netlify.app/ 
 
 ## Features
 - View top headlines from various categories.
